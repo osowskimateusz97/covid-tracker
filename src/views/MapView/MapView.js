@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from "react";
-import "./App.css";
 import {
-  MenuItem,
-  FormControl,
-  Select,
-  Card,
-  CardContent,
-} from "@material-ui/core";
-import InfoBox from "../components/molecules/InfoBox/InfoBox";
-import LineGraph from "../components/atoms/LineGraph/LineGraph";
-import Table from "../components/atoms/Table/Table";
-import { sortData, prettyPrintStat } from "../utils";
+  Wrapper,
+  StyledFormControl,
+  Header,
+  StatsWrapper,
+  StyledHeading,
+  StyledCard,
+  LeftSideWrapper,
+  StyledButton,
+} from "./MapView.css";
+import { MenuItem, Select, CardContent } from "@material-ui/core";
+import { InfoBox } from "components/molecules";
+import { LineGraph } from "components/atoms";
+import { Table } from "components/atoms";
+import { sortData, prettyPrintStat } from "../../utils";
 import numeral from "numeral";
-import Map from "./Map";
+import { Map } from "components/molecules";
 import "leaflet/dist/leaflet.css";
-import Button from '@material-ui/core/Button';
-import { Link } from 'react-router-dom';
-const UserView = () => {
+
+import { Link } from "react-router-dom";
+
+const StartView = () => {
   const [country, setInputCountry] = useState("worldwide");
   const [countryInfo, setCountryInfo] = useState({});
   const [countries, setCountries] = useState([]);
@@ -36,24 +40,20 @@ const UserView = () => {
 
   useEffect(() => {
     const getCountriesData = async () => {
-      fetch("https://disease.sh/v3/covid-19/countries")
-        .then((response) => response.json())
-        .then((data) => {
-          const countries = data.map((country) => ({
-            name: country.country,
-            value: country.countryInfo.iso2,
-          }));
-          let sortedData = sortData(data);
-          setCountries(countries);
-          setMapCountries(data);
-          setTableData(sortedData);
-        });
+      const res = await fetch("https://disease.sh/v3/covid-19/countries");
+      const data = await res.json();
+      const countries = data.map((country) => ({
+        name: country.country,
+        value: country.countryInfo.iso2,
+      }));
+      let sortedData = sortData(data);
+      setCountries(countries);
+      setMapCountries(data);
+      setTableData(sortedData);
     };
 
     getCountriesData();
   }, []);
-
-  console.log(casesType);
 
   const onCountryChange = async (e) => {
     const countryCode = e.target.value;
@@ -62,23 +62,23 @@ const UserView = () => {
       countryCode === "worldwide"
         ? "https://disease.sh/v3/covid-19/all"
         : `https://disease.sh/v3/covid-19/countries/${countryCode}`;
-    await fetch(url)
-      .then((response) => response.json())
-      .then((data) => {
-        setInputCountry(countryCode);
-        setCountryInfo(data);
-        setMapCenter([data.countryInfo.lat, data.countryInfo.long]);
-        setMapZoom(4);
-      });
+    const res = await fetch(url);
+    const data = await res.json();
+    setInputCountry(countryCode);
+    setCountryInfo(data);
+    setMapCenter([data.countryInfo.lat, data.countryInfo.long]);
+    setMapZoom(4);
   };
 
   return (
-    <div className="app">
-      <div className="app__left">
-        <div className="app__header">
-        <Link to="/" style={{textDecoration:'none'}}><Button style={{backgroundColor:'#252652',color:'white'}} variant="contained">Back</Button></Link>
+    <Wrapper>
+      <LeftSideWrapper>
+        <Header>
+          <Link to="/" style={{ textDecoration: "none" }}>
+            <StyledButton variant="contained">Back</StyledButton>
+          </Link>
           <h1>COVID-19 Tracker</h1>
-          <FormControl className="app__dropdown">
+          <StyledFormControl>
             <Select
               variant="outlined"
               value={country}
@@ -89,16 +89,16 @@ const UserView = () => {
                 <MenuItem value={country.value}>{country.name}</MenuItem>
               ))}
             </Select>
-          </FormControl>
-        </div>
-       
+          </StyledFormControl>
+        </Header>
+
         <Map
           countries={mapCountries}
           casesType={casesType}
           center={mapCenter}
           zoom={mapZoom}
         />
-         <div className="app__stats">
+        <StatsWrapper>
           <InfoBox
             onClick={(e) => setCasesType("cases")}
             title="Coronavirus Cases"
@@ -122,20 +122,20 @@ const UserView = () => {
             cases={prettyPrintStat(countryInfo.todayDeaths)}
             total={numeral(countryInfo.deaths).format("0.0a")}
           />
-        </div>
-      </div>
-      <Card className="app__right">
+        </StatsWrapper>
+      </LeftSideWrapper>
+      <StyledCard>
         <CardContent>
-          <div className="app__information">
-            <h3>Live Cases by Country</h3>
+          <div>
+            <StyledHeading>Live Cases by Country</StyledHeading>
             <Table countries={tableData} />
             <h3>Worldwide new {casesType}</h3>
             <LineGraph casesType={casesType} />
           </div>
         </CardContent>
-      </Card>
-    </div>
+      </StyledCard>
+    </Wrapper>
   );
 };
 
-export default UserView;
+export default StartView;

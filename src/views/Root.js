@@ -1,43 +1,39 @@
-import React,{useState,useEffect} from 'react';
-import GlobalStyle from '../theme/GlobalStyle';
-import Header from '../components/molecules/Header/Header';
-import InformationContainer from '../components/organisms/InformationContainer/InformationContainer';
-import Footer from '../components/organisms/Footer/Footer';
-import {globalData} from '../api';
-import UserView from './UserView';
-import { 
-  BrowserRouter as Router,
-  Switch,
-  Route
-} from 'react-router-dom';
-function Root() {
+import React, { useState, useEffect } from "react";
+import GlobalStyle from "../theme/GlobalStyle";
+import { Header } from "components/molecules";
+import { InformationContainer, Footer } from "components/organisms";
+import { globalData } from "../api";
+import { MapView } from "views";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
-  const [globalInfo,setGlobalInfo] = useState({});
+const Root = () => {
+  const [globalInfo, setGlobalInfo] = useState({});
 
-  useEffect(()=>{
+  useEffect(() => {
     //fetched global cases and set to variable
-    const fetchGlobalData = () =>fetch(globalData)
-    .then(res=>res.json())
-    .then(data=>setGlobalInfo(data))
- 
+    const fetchGlobalData = async () => {
+      const res = await fetch(globalData);
+      const data = await res.json();
+      setGlobalInfo(data);
+    };
     fetchGlobalData();
-  },[])
-  
+  }, []);
+
   return (
     <Router>
-      <GlobalStyle/>
+      <GlobalStyle />
       <Switch>
         <Route path="/" exact>
-      <Header/>
-      <InformationContainer globalCases={globalInfo}/>
-      </Route>
-      <Route path="/map">
-        <UserView/>
-      </Route>
+          <Header />
+          <InformationContainer globalCases={globalInfo} />
+        </Route>
+        <Route path="/map">
+          <MapView />
+        </Route>
       </Switch>
-      <Footer/>
+      <Footer />
     </Router>
   );
-}
+};
 
 export default Root;
